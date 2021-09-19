@@ -36,3 +36,9 @@
 cmake-build-debug/
 CMakeLists.txt
 .idea/
+
+# log file
+src/log
+
+# vscode
+src/.vscode/
