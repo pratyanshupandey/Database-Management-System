@@ -46,3 +46,6 @@ src/.vscode/
 
 # out file
 src/out
+
+# server binary executable
+src/server
