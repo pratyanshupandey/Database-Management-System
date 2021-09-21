@@ -22,9 +22,36 @@ Matrix::Matrix(string matrixName)
     this->sourceFileName = "../data/" + matrixName + ".csv";
     this->matrixName = matrixName;
     this->maxElementsPerBlock = BLOCK_SIZE * 1024 / sizeof(ele_t);
-    this->isSparse = this->checkSparse();
     this->N = this->extractN();
+    this->isSparse = this->checkSparse();
 }
+
+/**
+ * @brief Function extracts N - the size of the n*n square matrix from the first
+ *  line of the .csv data file. 
+ *
+ * @return true if N successfully extracted 
+ * @return false otherwise
+ */
+uint Matrix::extractN()
+{
+    logger.log("Matrix::extractN");
+    // unordered_set<string> columnNames;
+    // string word;
+    // stringstream s(firstLine);
+    // while (getline(s, word, ','))
+    // {
+    //     word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
+    //     if (columnNames.count(word))
+    //         return false;
+    //     columnNames.insert(word);
+    //     this->columns.emplace_back(word);
+    // }
+    // this->columnCount = this->columns.size();
+    // this->maxRowsPerBlock = (uint)((BLOCK_SIZE * 1000) / (sizeof(int) * this->columnCount));
+    return true;
+}
+
 
 /**
  * @brief The checkSparse function is used when the LOAD command is encountered. It
@@ -96,32 +123,6 @@ bool Matrix::loadDense()
     // }
     // fin.close();
     return false;
-}
-
-/**
- * @brief Function extracts N - the size of the n*n square matrix from the first
- *  line of the .csv data file. 
- *
- * @return true if N successfully extracted 
- * @return false otherwise
- */
-bool Matrix::extractN()
-{
-    logger.log("Matrix::extractN");
-    // unordered_set<string> columnNames;
-    // string word;
-    // stringstream s(firstLine);
-    // while (getline(s, word, ','))
-    // {
-    //     word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
-    //     if (columnNames.count(word))
-    //         return false;
-    //     columnNames.insert(word);
-    //     this->columns.emplace_back(word);
-    // }
-    // this->columnCount = this->columns.size();
-    // this->maxRowsPerBlock = (uint)((BLOCK_SIZE * 1000) / (sizeof(int) * this->columnCount));
-    return true;
 }
 
 /**

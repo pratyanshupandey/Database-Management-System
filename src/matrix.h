@@ -26,7 +26,7 @@ public:
     Matrix(string matrixName);
 
     bool checkSparse();
-    bool extractN();
+    uint extractN();
     bool blockify();
 
     bool load();
