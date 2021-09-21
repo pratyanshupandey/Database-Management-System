@@ -12,6 +12,8 @@ ParsedQuery parsedQuery;
 TableCatalogue tableCatalogue;
 BufferManager bufferManager;
 
+MatrixCatalogue matrixCatalogue;
+
 void doCommand()
 {
     logger.log("doCommand");
