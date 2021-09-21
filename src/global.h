@@ -9,3 +9,4 @@ extern TableCatalogue tableCatalogue;
 extern BufferManager bufferManager;
 
 extern MatrixCatalogue matrixCatalogue;
+extern MatrixBufferManager matrixBufferManager;

@@ -13,6 +13,7 @@ TableCatalogue tableCatalogue;
 BufferManager bufferManager;
 
 MatrixCatalogue matrixCatalogue;
+MatrixBufferManager matrixBufferManager;
 
 void doCommand()
 {
