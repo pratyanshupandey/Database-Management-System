@@ -1,4 +1,5 @@
 #include "cursor.h"
+#include "matrixBufferManager.h"
 
 typedef uint ele_t;
 
