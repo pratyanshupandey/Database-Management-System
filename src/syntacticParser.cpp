@@ -18,15 +18,36 @@ bool syntacticParse()
     else if (possibleQueryType == "LIST")
         return syntacticParseLIST();
     else if (possibleQueryType == "LOAD")
-        return syntacticParseLOAD();
+    {
+        if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
+            // call syntacticParseLOADMATRIX()
+            return true;
+        else
+            return syntacticParseLOAD();
+    }
     else if (possibleQueryType == "PRINT")
-        return syntacticParsePRINT();
+    {
+        if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
+            // call syntacticParsePRINTMATRIX()
+            return true;
+        else
+            return syntacticParsePRINT();
+    }
     else if (possibleQueryType == "RENAME")
         return syntacticParseRENAME();
     else if(possibleQueryType == "EXPORT")
-        return syntacticParseEXPORT();
+    {
+        if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
+            // call syntacticParseEXPORTMATRIX()
+            return true;
+        else
+            return syntacticParseEXPORT();
+    }
     else if(possibleQueryType == "SOURCE")
         return syntacticParseSOURCE();
+    else if(possibleQueryType == "TRANSPOSE")
+        // call syntacticParseTRANSPOSE()
+        return true;
     else
     {
         string resultantRelationName = possibleQueryType;
