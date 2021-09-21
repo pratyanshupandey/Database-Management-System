@@ -7,3 +7,5 @@ extern vector<string> tokenizedQuery;
 extern ParsedQuery parsedQuery;
 extern TableCatalogue tableCatalogue;
 extern BufferManager bufferManager;
+
+extern MatrixCatalogue matrixCatalogue;
