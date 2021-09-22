@@ -127,7 +127,36 @@ bool Matrix::loadSparse()
 bool Matrix::loadDense()
 {
     logger.log("Matrix::loadDense");
-    // fstream fin(this->sourceFileName, ios::in);
+    fstream fin(this->sourceFileName, ios::in);
+    
+    string words, word;
+    ele_t element;
+    vector <ele_t> elements;
+
+    if(!fin.is_open())
+        return false;
+
+    while (!fin.eof())
+    {
+        while (getline(fin, word, ','))
+        {
+            stringstream s(word);
+            while (getline(s, word))
+            {
+                element = stoi(word);
+                elements.push_back(element);
+                if(elements.size() >= this->maxElementsPerBlock)
+                {    // write in memeory
+                    matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
+                    elements.clear();
+                    this->blockCount++;
+                }
+            }
+            
+        }
+        
+    }
+    fin.close();
     // string line;
     // if (getline(fin, line))
     // {
@@ -235,8 +264,25 @@ void Matrix::printSparse()
  */
 void Matrix::printDense()
 {
-    logger.log("Matrix::printDense");
-    // uint count = min((long long)PRINT_COUNT, this->rowCount);
+    logger.log("Matrix::printDense");    
+
+    uint count = min(PRINT_COUNT, this->N);
+    
+    for (uint i = 0; i < count; i++)
+    {
+        uint ele_count = 0;
+        while(ele_count < count)
+        {
+            int pageIndex = (i * this->N + ele_count) / this->maxElementsPerBlock;
+            uint offset = (i * this->N + ele_count) % this->maxElementsPerBlock;
+            MatrixPage page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+            while(offset < this->maxElementsPerBlock && ele_count < count)
+                cout << page.getElement(offset) << " ";
+        }
+
+    }
+    
+    printRowCount(count);
 
     // //print headings
     // this->writeRow(this->columns, cout);
@@ -289,7 +335,46 @@ bool Matrix::transposeSparse()
 bool Matrix::transposeDense()
 {
     logger.log("Matrix::transposeDense");
-    return true;
+
+    matrixBufferManager.mode = WRITEBACK;
+    
+    MatrixPage curPage;
+    int curIndex;
+    fstream file;
+    for (uint i = 0; i < this->N; i++)
+    {
+        for (uint j = 0; j < this->N; j++)
+        {
+            
+        }
+    }
+
+
+    // matrixBufferManager.mode = WRITEBACK;
+
+    // for (uint i = 0; i < this->N; i++)
+    // {
+    //     for (uint j = 0; j < this->N; j++)
+    //     {
+    //         int pageIndex1 = (i * this->N + j) / this->maxElementsPerBlock;
+    //         int offset1 = (i * this->N + j) % this->maxElementsPerBlock;
+    //         MatrixPage page1 = matrixBufferManager.getPage(this->matrixName, pageIndex1);
+    //         ele_t element1 = page1.getElement(offset1);
+ 
+    //         int pageIndex2 = (j * this->N + i) / this->maxElementsPerBlock;
+    //         int offset2 = (j * this->N + i) % this->maxElementsPerBlock;
+    //         MatrixPage page2 = matrixBufferManager.getPage(this->matrixName, pageIndex2);
+    //         ele_t element2 = page2.getElement(offset2);
+            
+    //         page1.setElement(offset1, element2);
+    //         page2.setElement(offset2, element1);
+    //     }
+        
+    // }
+    
+    // matrixBufferManager.mode = NORMAL;
+    // return true;
+    
 }
 
 /**
@@ -358,10 +443,34 @@ void Matrix::makePermanentSparse()
 void Matrix::makePermanentDense()
 {
     logger.log("Matrix::makePermanentDense");
-    // if(!this->isPermanent())
-    //     bufferManager.deleteFile(this->sourceFileName);
-    // string newSourceFile = "../data/" + this->matrixName + ".csv";
-    // ofstream fout(newSourceFile, ios::out);
+
+    if(!this->isPermanent())
+        bufferManager.deleteFile(this->sourceFileName);
+    string newSourceFile = "../data/" + this->matrixName + ".csv";
+    ofstream fout(newSourceFile, ios::out);
+
+    int row_ele_count = 0;
+    for (int pageIndex = 0; pageIndex < this->blockCount; pageIndex++)
+    {
+        MatrixPage page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+        for (int elementIndex = 0; elementIndex < this->maxElementsPerBlock; elementIndex++)
+        {
+            fout << page.getElement(elementIndex);
+            row_ele_count++;
+            if(row_ele_count == this->N)
+            {
+                row_ele_count = 0;
+                fout << "\n";
+            }
+            else
+                fout << ",";
+
+        }
+        
+    }
+    fout.close();
+    
+
 
     // //print headings
     // this->writeRow(this->columns, fout);

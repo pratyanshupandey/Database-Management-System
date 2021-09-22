@@ -12,6 +12,7 @@ MatrixPage::MatrixPage()
     this->N = 0;
     this->max_elements = 0;
     this->elements.clear();
+    this->isModified = false;
 }
 
 /**
@@ -36,6 +37,7 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
     this->max_elements = matrix.maxElementsPerBlock;
     this->N = matrix.N;
     this->elements.clear();
+    this->isModified = false;
 
     ifstream fin(pageName, ios::in | ios::binary);
     ele_t element;
@@ -80,14 +82,15 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<ele_t> elements,
     this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
     this->elements = elements;
     this->max_elements = maxElementsPerBlock;
+    this->isModified = false;
 }
 
 
 /**
- * @brief Get row from page indexed by rowIndex
+ * @brief Get element from page indexed by elementIndex
  * 
- * @param rowIndex 
- * @return vector<int> 
+ * @param elementIndex 
+ * @return element 
  */
 ele_t MatrixPage::getElement(int elementIndex)
 {
@@ -96,6 +99,25 @@ ele_t MatrixPage::getElement(int elementIndex)
         return -1;
     return this->elements[elementIndex];
 }
+
+/**
+ * @brief Update element from page indexed by elementIndex with value
+ * 
+ * @param elementIndex 
+ * @param value
+ * @return true if success
+ * @return false otherwise 
+ */
+bool MatrixPage::setElement(int elementIndex, ele_t value)
+{
+    logger.log("MatrixPage::setElement");
+    if(elementIndex >= this->elements.size())
+        return false;
+    this->isModified = true;
+    this->elements[elementIndex] = value;
+    return true;
+}
+
 
 /**
  * @brief writes current page contents to file.
@@ -111,6 +133,7 @@ void MatrixPage::writePage()
         fout.write(reinterpret_cast<char * >(&element), sizeof(element));
     }
     fout.close();
+    this->isModified = false;
     // for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     // {
     //     for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
@@ -122,4 +145,15 @@ void MatrixPage::writePage()
     //     fout << endl;
     // }
     // fout.close();
+}
+
+
+/**
+ * @brief if a page is modified write its contents to temp files before destroying the page
+ * 
+ */
+MatrixPage::~MatrixPage()
+{
+    if(this->isModified == true)
+        this->writePage();
 }

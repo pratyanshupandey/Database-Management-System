@@ -3,6 +3,8 @@
 MatrixBufferManager::MatrixBufferManager()
 {
     logger.log("MatrixBufferManager::MatrixBufferManager");
+    this->mode = NORMAL;
+    this->policy = FIFO;
 }
 
 /**
@@ -71,7 +73,12 @@ MatrixPage MatrixBufferManager::insertIntoPool(string matrixName, int pageIndex)
     logger.log("MatrixBufferManager::insertIntoPool");
     MatrixPage page(matrixName, pageIndex);
     if (this->pages.size() >= BLOCK_COUNT)
+    {
+        if(this->mode == WRITEBACK)
+            if(pages.front().isModified == true)
+                pages.front().writePage();
         pages.pop_front();
+    }
     pages.push_back(page);
     return page;
 }

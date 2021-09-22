@@ -49,3 +49,6 @@ src/out
 
 # server binary executable
 src/server
+
+# temp files
+data/temp/
