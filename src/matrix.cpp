@@ -249,7 +249,26 @@ void Matrix::printSparse()
  */
 void Matrix::printDense()
 {
-    // logger.log("Matrix::printDense");    
+    logger.log("Matrix::printDense");    
+
+    uint count = min(PRINT_COUNT, this->N);
+    
+    for (uint i = 0; i < count; i++)
+    {
+        uint ele_count = 0;
+        while(ele_count < count)
+        {
+            int pageIndex = (i * this->N + ele_count) / this->maxElementsPerBlock;
+            uint offset = (i * this->N + ele_count) % this->maxElementsPerBlock;
+            MatrixPage page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+            while(offset < this->maxElementsPerBlock && ele_count < count)
+                cout << page.getElement(offset) << " ";
+        }
+
+    }
+    
+    printRowCount(count);
+
     // //print headings
     // this->writeRow(this->columns, cout);
 
@@ -369,6 +388,34 @@ void Matrix::makePermanentSparse()
 void Matrix::makePermanentDense()
 {
     logger.log("Matrix::makePermanentDense");
+
+    if(!this->isPermanent())
+        bufferManager.deleteFile(this->sourceFileName);
+    string newSourceFile = "../data/" + this->matrixName + ".csv";
+    ofstream fout(newSourceFile, ios::out);
+
+    int row_ele_count = 0;
+    for (int pageIndex = 0; pageIndex < this->blockCount; pageIndex++)
+    {
+        MatrixPage page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+        for (int elementIndex = 0; elementIndex < this->maxElementsPerBlock; elementIndex++)
+        {
+            fout << page.getElement(elementIndex);
+            row_ele_count++;
+            if(row_ele_count == this->N)
+            {
+                row_ele_count = 0;
+                fout << "\n";
+            }
+            else
+                fout << ",";
+
+        }
+        
+    }
+    fout.close();
+    
+
 
     // //print headings
     // this->writeRow(this->columns, fout);
