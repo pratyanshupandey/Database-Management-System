@@ -20,16 +20,14 @@ bool syntacticParse()
     else if (possibleQueryType == "LOAD")
     {
         if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
-            // call syntacticParseLOADMATRIX()
-            return true;
+            return syntacticParseLOADMATRIX();
         else
             return syntacticParseLOAD();
     }
     else if (possibleQueryType == "PRINT")
     {
         if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
-            // call syntacticParsePRINTMATRIX()
-            return true;
+            return syntacticParsePRINTMATRIX();
         else
             return syntacticParsePRINT();
     }
@@ -38,16 +36,14 @@ bool syntacticParse()
     else if(possibleQueryType == "EXPORT")
     {
         if(tokenizedQuery.size() > 2 && tokenizedQuery[1] == "MATRIX")
-            // call syntacticParseEXPORTMATRIX()
-            return true;
+            return syntacticParseEXPORTMATRIX();
         else
             return syntacticParseEXPORT();
     }
     else if(possibleQueryType == "SOURCE")
         return syntacticParseSOURCE();
     else if(possibleQueryType == "TRANSPOSE")
-        // call syntacticParseTRANSPOSE()
-        return true;
+        return syntacticParseTRANSPOSE();
     else
     {
         string resultantRelationName = possibleQueryType;

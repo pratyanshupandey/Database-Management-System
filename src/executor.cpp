@@ -17,10 +17,10 @@ void executeCommand(){
         case SELECTION: executeSELECTION(); break;
         case SORT: executeSORT(); break;
         case SOURCE: executeSOURCE(); break;
-        case LOADMATRIX: return; // call executeLOADMATRIX
-        case PRINTMATRIX: return; // call executePRINTMATRIX
-        case EXPORTMATRIX: return; // call executeEXPORTMATRIX
-        case TRANSPOSE: return; // call executeTRANSPOSE
+        case LOADMATRIX: return executeLOADMATRIX();
+        case PRINTMATRIX: return executePRINTMATRIX();
+        case EXPORTMATRIX: return executeEXPORTMATRIX();
+        case TRANSPOSE: return executeTRANSPOSE();
         default: cout<<"PARSING ERROR"<<endl;
     }
 

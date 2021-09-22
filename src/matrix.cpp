@@ -26,30 +26,31 @@ Matrix::Matrix(string matrixName)
     this->isSparse = this->checkSparse();
 }
 
+
 /**
  * @brief Function extracts N - the size of the n*n square matrix from the first
  *  line of the .csv data file. 
  *
- * @return true if N successfully extracted 
- * @return false otherwise
+ * @return N if successfully extracted 
+ * @return 0 otherwise
  */
 uint Matrix::extractN()
 {
     logger.log("Matrix::extractN");
-    // unordered_set<string> columnNames;
-    // string word;
-    // stringstream s(firstLine);
-    // while (getline(s, word, ','))
-    // {
-    //     word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
-    //     if (columnNames.count(word))
-    //         return false;
-    //     columnNames.insert(word);
-    //     this->columns.emplace_back(word);
-    // }
-    // this->columnCount = this->columns.size();
-    // this->maxRowsPerBlock = (uint)((BLOCK_SIZE * 1000) / (sizeof(int) * this->columnCount));
-    return true;
+    fstream fin(this->sourceFileName, ios::in);
+    string firstLine;
+    if(getline(fin, firstLine))
+    {
+        fin.close();
+        string word;
+        uint size = 0;
+        stringstream s(firstLine);
+        while (getline(s, word, ','))
+            size++;
+        return size;
+    }
+    fin.close();
+    return 0;
 }
 
 
@@ -63,8 +64,21 @@ uint Matrix::extractN()
 bool Matrix::checkSparse()
 {
     logger.log("Matrix::checkSparse");
+    ifstream fin(this->sourceFileName, ios::in);
+    string line, word;
+    uint zeroCount = 0;
+    while(getline(fin, line))
+    {
+        stringstream s(line);
+        while(getline(s, word, ','))
+            if(word == "0")
+                zeroCount++;
+    }
+    if(zeroCount >= 0.6*(this->N)*(this->N))
+        return true;
     return false;
 }
+
 
 /**
  * @brief The load function is used when the LOAD command is encountered. It
@@ -76,10 +90,11 @@ bool Matrix::checkSparse()
 bool Matrix::load()
 {
     logger.log("Matrix::load");
-    if (this->isSparse)
-        return loadSparse();
-    return loadDense();
+    if(isSparse)
+        return this->loadSparse();
+    return this->loadDense();
 }
+
 
 /**
  * @brief The loadSparse function is used to load sparse matrices.

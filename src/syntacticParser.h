@@ -106,6 +106,12 @@ public:
 
     string sourceFileName = "";
 
+    string matrixName = "";
+    string loadMatrixName = "";
+    string printMatrixName = "";
+    string exportMatrixName = "";
+    string transposeMatrixName = "";
+
     ParsedQuery();
     void clear();
 };
@@ -125,6 +131,10 @@ bool syntacticParseRENAME();
 bool syntacticParseSELECTION();
 bool syntacticParseSORT();
 bool syntacticParseSOURCE();
+bool syntacticParseLOADMATRIX();
+bool syntacticParsePRINTMATRIX();
+bool syntacticParseEXPORTMATRIX();
+bool syntacticParseTRANSPOSE();
 
 bool isFileExists(string tableName);
 bool isQueryFile(string fileName);
