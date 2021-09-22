@@ -320,6 +320,33 @@ bool Matrix::transposeSparse()
 bool Matrix::transposeDense()
 {
     logger.log("Matrix::transposeDense");
+
+
+    matrixBufferManager.mode = WRITEBACK;
+
+    for (uint i = 0; i < this->N; i++)
+    {
+        for (uint j = 0; j < this->N; j++)
+        {
+            int pageIndex1 = (i * this->N + j) / this->maxElementsPerBlock;
+            int offset1 = (i * this->N + j) % this->maxElementsPerBlock;
+            MatrixPage page1 = matrixBufferManager.getPage(this->matrixName, pageIndex1);
+            ele_t element1 = page1.getElement(offset1);
+ 
+            int pageIndex2 = (j * this->N + i) / this->maxElementsPerBlock;
+            int offset2 = (j * this->N + i) % this->maxElementsPerBlock;
+            MatrixPage page2 = matrixBufferManager.getPage(this->matrixName, pageIndex2);
+            ele_t element2 = page2.getElement(offset2);
+            
+            page1.setElement(offset1, element2);
+            page2.setElement(offset2, element1);
+        }
+        
+    }
+    
+    matrixBufferManager.mode = NORMAL;
+    return true;
+    
 }
 
 /**
