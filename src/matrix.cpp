@@ -112,7 +112,36 @@ bool Matrix::loadSparse()
 bool Matrix::loadDense()
 {
     logger.log("Matrix::loadDense");
-    // fstream fin(this->sourceFileName, ios::in);
+    fstream fin(this->sourceFileName, ios::in);
+    
+    string words, word;
+    ele_t element;
+    vector <ele_t> elements;
+
+    if(!fin.is_open())
+        return false;
+
+    while (!fin.eof())
+    {
+        while (getline(fin, word, ','))
+        {
+            stringstream s(word);
+            while (getline(s, word))
+            {
+                element = stoi(word);
+                elements.push_back(element);
+                if(elements.size() >= this->maxElementsPerBlock)
+                {    // write in memeory
+                    matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
+                    elements.clear();
+                    this->blockCount++;
+                }
+            }
+            
+        }
+        
+    }
+    fin.close();
     // string line;
     // if (getline(fin, line))
     // {
@@ -220,9 +249,7 @@ void Matrix::printSparse()
  */
 void Matrix::printDense()
 {
-    logger.log("Matrix::printDense");
-    // uint count = min((long long)PRINT_COUNT, this->rowCount);
-
+    // logger.log("Matrix::printDense");    
     // //print headings
     // this->writeRow(this->columns, cout);
 
@@ -274,7 +301,6 @@ bool Matrix::transposeSparse()
 bool Matrix::transposeDense()
 {
     logger.log("Matrix::transposeDense");
-    return true;
 }
 
 /**
@@ -343,10 +369,6 @@ void Matrix::makePermanentSparse()
 void Matrix::makePermanentDense()
 {
     logger.log("Matrix::makePermanentDense");
-    // if(!this->isPermanent())
-    //     bufferManager.deleteFile(this->sourceFileName);
-    // string newSourceFile = "../data/" + this->matrixName + ".csv";
-    // ofstream fout(newSourceFile, ios::out);
 
     // //print headings
     // this->writeRow(this->columns, fout);
