@@ -20,6 +20,19 @@
  * </p>
  *
  */
+
+enum Mode
+{
+    NORMAL,
+    WRITEBACK
+};
+
+enum Policy
+{
+    FIFO,
+    LRU
+};
+
 class MatrixBufferManager{
 
     deque<MatrixPage> pages; 
@@ -28,10 +41,11 @@ class MatrixBufferManager{
     MatrixPage insertIntoPool(string matrixName, int pageIndex);
 
     public:
-    
+    Mode mode;
+    Policy policy;
     MatrixBufferManager();
     MatrixPage getPage(string matrixName, int pageIndex);
-    void writePage(string pageName, vector<vector<int>> rows);
+    void writePage(string pageName, vector<vector<int>> rows);      // unused unimplemented
     void deleteFile(string matrixName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string matrixName, int pageIndex, vector<ele_t> elements, uint N, uint maxElementsPerBlock);
