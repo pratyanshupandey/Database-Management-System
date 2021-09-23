@@ -21,7 +21,7 @@ bool syntacticParseTRANSPOSE()
 bool semanticParseTRANSPOSE()
 {
     logger.log("semanticParseTRANSPOSE");
-    if (matrixCatalogue.isMatrix(parsedQuery.transposeMatrixName))
+    if (!matrixCatalogue.isMatrix(parsedQuery.transposeMatrixName))
     {
         cout << "SEMANTIC ERROR: Matrix doesn't exist" << endl;
         return false;
