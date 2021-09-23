@@ -195,60 +195,6 @@ bool Matrix::loadDense()
 }
 
 /**
- * @brief This function splits all the rows and stores them in multiple files of
- * one block size. 
- *
- * @return true if successfully blockified
- * @return false otherwise
- */
-bool Matrix::blockify()
-{
-    logger.log("Matrix::blockify");
-    // ifstream fin(this->sourceFileName, ios::in);
-    // string line, word;
-    // vector<int> row(this->columnCount, 0);
-    // vector<vector<int>> rowsInPage(this->maxRowsPerBlock, row);
-    // int pageCounter = 0;
-    // unordered_set<int> dummy;
-    // dummy.clear();
-    // this->distinctValuesInColumns.assign(this->columnCount, dummy);
-    // this->distinctValuesPerColumnCount.assign(this->columnCount, 0);
-    // getline(fin, line);
-    // while (getline(fin, line))
-    // {
-    //     stringstream s(line);
-    //     for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
-    //     {
-    //         if (!getline(s, word, ','))
-    //             return false;
-    //         row[columnCounter] = stoi(word);
-    //         rowsInPage[pageCounter][columnCounter] = row[columnCounter];
-    //     }
-    //     pageCounter++;
-    //     this->updateStatistics(row);
-    //     if (pageCounter == this->maxRowsPerBlock)
-    //     {
-    //         bufferManager.writePage(this->matrixName, this->blockCount, rowsInPage, pageCounter);
-    //         this->blockCount++;
-    //         this->rowsPerBlockCount.emplace_back(pageCounter);
-    //         pageCounter = 0;
-    //     }
-    // }
-    // if (pageCounter)
-    // {
-    //     bufferManager.writePage(this->matrixName, this->blockCount, rowsInPage, pageCounter);
-    //     this->blockCount++;
-    //     this->rowsPerBlockCount.emplace_back(pageCounter);
-    //     pageCounter = 0;
-    // }
-
-    // if (this->rowCount == 0)
-    //     return false;
-    // this->distinctValuesInColumns.clear();
-    return true;
-}
-
-/**
  * @brief Function prints the first few rows of the matrix. If the matrix contains
  * more rows than PRINT_COUNT, exactly PRINT_COUNT rows are printed, else all
  * the rows are printed.
@@ -709,18 +655,3 @@ Cursor Matrix::getCursor()
     Cursor cursor(this->matrixName, 0);
     return cursor;
 }
-/**
- * @brief Function that returns the index of column indicated by columnName
- * 
- * @param columnName 
- * @return int 
- */
-// int Matrix::getColumnIndex(string columnName)
-// {
-//     logger.log("Matrix::getColumnIndex");
-//     for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
-//     {
-//         if (this->columns[columnCounter] == columnName)
-//             return columnCounter;
-//     }
-// }
