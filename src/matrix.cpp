@@ -182,27 +182,16 @@ bool Matrix::loadDense()
                 element = stoi(word);
                 elements.push_back(element);
                 if(elements.size() >= this->maxElementsPerBlock)
-                {    // write in memeory
+                {    
                     matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
                     elements.clear();
                     this->blockCount++;
                 }
-            }
-            
+            }   
         }
-        
     }
     fin.close();
-    // string line;
-    // if (getline(fin, line))
-    // {
-    //     fin.close();
-    //     if (this->extractColumnNames(line))
-    //         if (this->blockify())
-    //             return true;
-    // }
-    // fin.close();
-    return false;
+    return true;
 }
 
 /**
@@ -385,6 +374,7 @@ void Matrix::printDense()
                 ++ele_count;
             }
         }
+        cout << endl;
     }
 }
 
