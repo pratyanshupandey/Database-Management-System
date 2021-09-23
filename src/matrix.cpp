@@ -415,6 +415,8 @@ bool Matrix::transposeDense()
             cur_page->setElement(offset1, element);
         }
     }
+    matrixBufferManager.reset();
+    matrixBufferManager.mode = NORMAL;
     return true;
 
 
