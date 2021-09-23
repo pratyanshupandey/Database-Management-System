@@ -52,3 +52,6 @@ src/server
 
 # temp files
 data/temp/
+
+# test matrix files
+data/MAT*
