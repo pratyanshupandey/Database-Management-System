@@ -383,6 +383,8 @@ bool Matrix::transposeDense()
     // }
 
     matrixBufferManager.mode = WRITEBACK;
+    matrixBufferManager.reset();
+    
     int curPageIndex = 0, newPageIndex, pageIndex2;
     uint offset1, offset2;
     ele_t element, value;
@@ -397,6 +399,7 @@ bool Matrix::transposeDense()
             offset1 = (i * this->N + j) % this->maxElementsPerBlock;
             if (newPageIndex != curPageIndex)
             {
+                cur_page->writePage();
                 cur_page = matrixBufferManager.getPage(this->matrixName, newPageIndex);
                 curPageIndex = newPageIndex;
             }

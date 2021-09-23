@@ -156,17 +156,15 @@ ele_t MatrixBufferManager::readWriteElement(string matrixName, int pageIndex, ui
 void MatrixBufferManager:: reset()
 {
     logger.log("MatrixBufferManager::reset");
-    for (auto matrixPage : this->pages)
-        if (matrixPage->isModified == true)
-            matrixPage->writePage();
-}
-
-MatrixBufferManager:: ~MatrixBufferManager()
-{
     while(!pages.empty())
     {
         MatrixPage* delPage = pages.front();
         pages.pop_front();
         delete delPage;
     }
+}
+
+MatrixBufferManager:: ~MatrixBufferManager()
+{
+    this->reset();
 }
