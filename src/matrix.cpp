@@ -47,6 +47,7 @@ uint Matrix::extractN()
         stringstream s(firstLine);
         while (getline(s, word, ','))
             size++;
+        logger.log(to_string(size));
         return size;
     }
     fin.close();
@@ -71,9 +72,14 @@ bool Matrix::checkSparse()
     {
         stringstream s(line);
         while(getline(s, word, ','))
+        {
+            word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
+            logger.log(word);
             if(word == "0")
                 zeroCount++;
+        }
     }
+    logger.log(to_string(zeroCount));
     if(zeroCount >= 0.6*(this->N)*(this->N))
         return true;
     return false;
@@ -121,6 +127,7 @@ bool Matrix::loadSparse()
 
         while(getline(s, word, ','))
         {
+            word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
             if(word != "0")
             {
                 elements.push_back(stoi(word));
