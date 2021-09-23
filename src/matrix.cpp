@@ -138,35 +138,30 @@ bool Matrix::loadDense()
 
     while (!fin.eof())
     {
-        while (getline(fin, word, ','))
+        while (getline(fin, words))
         {
-            stringstream s(word);
-            while (getline(s, word))
+            stringstream s(words);
+            while (getline(s, word, ','))
             {
                 element = stoi(word);
                 elements.push_back(element);
                 if(elements.size() >= this->maxElementsPerBlock)
-                {    // write in memeory
+                {   
                     matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
                     elements.clear();
                     this->blockCount++;
                 }
             }
-            
         }
-        
+    }
+    if(elements.size() > 0)
+    {   
+        matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
+        elements.clear();
+        this->blockCount++;
     }
     fin.close();
-    // string line;
-    // if (getline(fin, line))
-    // {
-    //     fin.close();
-    //     if (this->extractColumnNames(line))
-    //         if (this->blockify())
-    //             return true;
-    // }
-    // fin.close();
-    return false;
+    return true;
 }
 
 /**
@@ -277,12 +272,16 @@ void Matrix::printDense()
             uint offset = (i * this->N + ele_count) % this->maxElementsPerBlock;
             MatrixPage page = matrixBufferManager.getPage(this->matrixName, pageIndex);
             while(offset < this->maxElementsPerBlock && ele_count < count)
+            {
                 cout << page.getElement(offset) << " ";
+                ++offset;
+                ++ele_count;
+            }
         }
-
+        cout << endl;
     }
     
-    printRowCount(count);
+    // printRowCount(count);
 
     // //print headings
     // this->writeRow(this->columns, cout);
