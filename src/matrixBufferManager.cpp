@@ -15,7 +15,7 @@ MatrixBufferManager::MatrixBufferManager()
  * @param pageIndex 
  * @return MatrixPage 
  */
-MatrixPage MatrixBufferManager::getPage(string matrixName, int pageIndex)
+MatrixPage* MatrixBufferManager::getPage(string matrixName, int pageIndex)
 {
     logger.log("MatrixBufferManager::getPage");
     string pageName = "../data/temp/"+matrixName + "_Page" + to_string(pageIndex);
@@ -37,7 +37,7 @@ bool MatrixBufferManager::inPool(string pageName)
     logger.log("MatrixBufferManager::inPool");
     for (auto matrixPage : this->pages)
     {
-        if (pageName == matrixPage.pageName)
+        if (pageName == matrixPage->pageName)
             return true;
     }
     return false;
@@ -51,11 +51,11 @@ bool MatrixBufferManager::inPool(string pageName)
  * @param pageName 
  * @return MatrixPage 
  */
-MatrixPage MatrixBufferManager::getFromPool(string pageName)
+MatrixPage* MatrixBufferManager::getFromPool(string pageName)
 {
     logger.log("MatrixBufferManager::getFromPool");
     for (auto matrixPage : this->pages)
-        if (pageName == matrixPage.pageName)
+        if (pageName == matrixPage->pageName)
             return matrixPage;
 }
 
@@ -68,16 +68,18 @@ MatrixPage MatrixBufferManager::getFromPool(string pageName)
  * @param pageIndex 
  * @return MatrixPage 
  */
-MatrixPage MatrixBufferManager::insertIntoPool(string matrixName, int pageIndex)
+MatrixPage* MatrixBufferManager::insertIntoPool(string matrixName, int pageIndex)
 {
     logger.log("MatrixBufferManager::insertIntoPool");
-    MatrixPage page(matrixName, pageIndex);
+    MatrixPage* page = new MatrixPage(matrixName, pageIndex);
     if (this->pages.size() >= BLOCK_COUNT)
     {
-        if(this->mode == WRITEBACK)
-            if(pages.front().isModified == true)
-                pages.front().writePage();
+        // if(this->mode == WRITEBACK)
+        //     if(pages.front()->isModified == true)
+        //         pages.front()->writePage();
+        MatrixPage* delPage = pages.front();
         pages.pop_front();
+        delete delPage;
     }
     pages.push_back(page);
     return page;

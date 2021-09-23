@@ -35,16 +35,16 @@ enum Policy
 
 class MatrixBufferManager{
 
-    deque<MatrixPage> pages; 
+    deque<MatrixPage*> pages; 
     bool inPool(string pageName);
-    MatrixPage getFromPool(string pageName);
-    MatrixPage insertIntoPool(string matrixName, int pageIndex);
+    MatrixPage* getFromPool(string pageName);
+    MatrixPage* insertIntoPool(string matrixName, int pageIndex);
 
     public:
     Mode mode;
     Policy policy;
     MatrixBufferManager();
-    MatrixPage getPage(string matrixName, int pageIndex);
+    MatrixPage* getPage(string matrixName, int pageIndex);
     void writePage(string pageName, vector<vector<int>> rows);      // unused unimplemented
     void deleteFile(string matrixName, int pageIndex);
     void deleteFile(string fileName);
