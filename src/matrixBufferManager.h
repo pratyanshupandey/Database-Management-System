@@ -49,4 +49,5 @@ class MatrixBufferManager{
     void deleteFile(string matrixName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string matrixName, int pageIndex, vector<ele_t> elements, uint N, uint maxElementsPerBlock);
+    ~MatrixBufferManager();
 };

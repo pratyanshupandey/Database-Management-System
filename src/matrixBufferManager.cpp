@@ -127,3 +127,13 @@ void MatrixBufferManager::deleteFile(string matrixName, int pageIndex)
     string fileName = "../data/temp/"+matrixName + "_Page" + to_string(pageIndex);
     this->deleteFile(fileName);
 }
+
+MatrixBufferManager:: ~MatrixBufferManager()
+{
+    while(!pages.empty())
+    {
+        MatrixPage* delPage = pages.front();
+        pages.pop_front();
+        delete delPage;
+    }
+}
