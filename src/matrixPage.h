@@ -25,6 +25,7 @@ class MatrixPage{
     MatrixPage(string matrixName, int pageIndex, vector<ele_t> elements, uint N, uint maxElementsPerBlock);
     ele_t getElement(int elementIndex);
     bool setElement(int elementIndex, ele_t value);
+    vector <ele_t>& getVector();
     void writePage();
     ~MatrixPage();
 };

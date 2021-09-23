@@ -100,6 +100,17 @@ ele_t MatrixPage::getElement(int elementIndex)
     return this->elements[elementIndex];
 }
 
+
+/**
+ * @brief Get the elements vector
+ * 
+ * @return elements 
+ */
+vector <ele_t>& MatrixPage::getVector()
+{
+    return this->elements;
+}
+
 /**
  * @brief Update element from page indexed by elementIndex with value
  * 
