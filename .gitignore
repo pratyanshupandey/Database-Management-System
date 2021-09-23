@@ -55,3 +55,7 @@ data/temp/
 
 # test matrix files
 data/MAT*
+
+# command file
+src/command
+
