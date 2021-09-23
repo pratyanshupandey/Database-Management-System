@@ -128,6 +128,31 @@ void MatrixBufferManager::deleteFile(string matrixName, int pageIndex)
     this->deleteFile(fileName);
 }
 
+/**
+ * @brief Given a page it reads the value present at index given by offset and overwrites it
+ * with the given value
+ *
+ * @param matrixName 
+ * @param pageIndex 
+ * @param offset
+ * @param value
+ * @return element
+ */
+ele_t MatrixBufferManager::readWriteElement(string matrixName, int pageIndex, uint offset, ele_t value)
+{
+    string pageName = "../data/temp/" + matrixName + "_Page" + to_string(pageIndex);
+    fstream file(pageName, ios::in | ios::out | ios::binary);
+    
+    ele_t element;
+    file.seekg(offset * sizeof(element), ios::beg);
+    file.read(reinterpret_cast<char*>(&element), sizeof(element));
+
+    file.seekp(offset * sizeof(element), ios::beg);
+    file.write(reinterpret_cast<char*>(&value), sizeof(value));
+
+    return element;
+}
+
 MatrixBufferManager:: ~MatrixBufferManager()
 {
     while(!pages.empty())
