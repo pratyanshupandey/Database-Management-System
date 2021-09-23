@@ -41,24 +41,10 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
 
     ifstream fin(pageName, ios::in | ios::binary);
     ele_t element;
-    while (!fin.eof())
-    {
-        fin.read(reinterpret_cast<char*>(&element), sizeof(element));
+    while (fin.read(reinterpret_cast<char*>(&element), sizeof(element)))
         this->elements.push_back(element);
-    }
-    fin.close();
     
-    // this->rowCount = table.rowsPerBlockCount[pageIndex];
-    // int number;
-    // for (uint rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
-    // {
-    //     for (int columnCounter = 0; columnCounter < columnCount; columnCounter++)
-    //     {
-    //         fin >> number;
-    //         this->rows[rowCounter][columnCounter] = number;
-    //     }
-    // }
-    // fin.close();
+    fin.close();
 }
 
 /**
