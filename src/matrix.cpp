@@ -172,21 +172,27 @@ bool Matrix::loadDense()
 
     while (!fin.eof())
     {
-        while (getline(fin, word, ','))
+        while (getline(fin, words))
         {
-            stringstream s(word);
-            while (getline(s, word))
+            stringstream s(words);
+            while (getline(s, word, ','))
             {
                 element = stoi(word);
                 elements.push_back(element);
                 if(elements.size() >= this->maxElementsPerBlock)
-                {    
+                {   
                     matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
                     elements.clear();
                     this->blockCount++;
                 }
-            }   
+            }
         }
+    }
+    if(elements.size() > 0)
+    {   
+        matrixBufferManager.writePage(this->matrixName, this->blockCount, elements, this->N, this->maxElementsPerBlock);
+        elements.clear();
+        this->blockCount++;
     }
     fin.close();
     return true;
@@ -375,6 +381,8 @@ bool Matrix::transposeDense()
     // }
 
     matrixBufferManager.mode = WRITEBACK;
+    matrixBufferManager.reset();
+    
     int curPageIndex = 0, newPageIndex, pageIndex2;
     uint offset1, offset2;
     ele_t element, value;
@@ -382,13 +390,13 @@ bool Matrix::transposeDense()
     
     for (uint i = 0; i < this->N - 1; i++)
     {
-        // cout << i << endl;
         for (uint j = i + 1; j < this->N; j++)
         {
             newPageIndex = (i * this->N + j) / this->maxElementsPerBlock;
             offset1 = (i * this->N + j) % this->maxElementsPerBlock;
             if (newPageIndex != curPageIndex)
             {
+                cur_page->writePage();
                 cur_page = matrixBufferManager.getPage(this->matrixName, newPageIndex);
                 curPageIndex = newPageIndex;
             }
@@ -407,7 +415,9 @@ bool Matrix::transposeDense()
             cur_page->setElement(offset1, element);
         }
     }
-    
+    matrixBufferManager.reset();
+    matrixBufferManager.mode = NORMAL;
+    return true;
 
 
     // matrixBufferManager.mode = WRITEBACK;

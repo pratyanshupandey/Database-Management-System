@@ -50,5 +50,6 @@ class MatrixBufferManager{
     void deleteFile(string fileName);
     void writePage(string matrixName, int pageIndex, vector<ele_t> elements, uint N, uint maxElementsPerBlock);
     ele_t readWriteElement(string matrixName, int pageIndex, uint offset, ele_t value);
+    void reset();
     ~MatrixBufferManager();
 };
