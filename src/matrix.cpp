@@ -74,12 +74,10 @@ bool Matrix::checkSparse()
         while(getline(s, word, ','))
         {
             word.erase(std::remove_if(word.begin(), word.end(), ::isspace), word.end());
-            logger.log(word);
             if(word == "0")
                 zeroCount++;
         }
     }
-    logger.log(to_string(zeroCount));
     if(zeroCount >= 0.6*(this->N)*(this->N))
         return true;
     return false;
