@@ -392,7 +392,6 @@ bool Matrix::transposeDense()
     
     for (uint i = 0; i < this->N - 1; i++)
     {
-        // cout << i << endl;
         for (uint j = i + 1; j < this->N; j++)
         {
             newPageIndex = (i * this->N + j) / this->maxElementsPerBlock;
