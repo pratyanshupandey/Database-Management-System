@@ -574,12 +574,13 @@ void Matrix::makePermanentSparse()
     if(this->isTranspose)
     {
         uint maxRows = max_size / this->N;
-        uint iterations = ceil(this->N / maxRows);
+        uint premax = maxRows;
+        uint iterations = this->N / maxRows;
         uint row = 0;
         vector<uint> offset(this->blockCount, 0);
-        for(uint i = 0; i < iterations; i++)
+        for(uint i = 0; i <= iterations; i++)
         {
-            if(i == iterations - 1)
+            if(i == iterations)
                 maxRows = this->N % maxRows;
             row += maxRows;
             vector<vector<ele_t>> temp(maxRows, vector<ele_t>(this->N, 0));
@@ -596,7 +597,7 @@ void Matrix::makePermanentSparse()
                     if(index >= (row * this->N))
                         break;
                     
-                    uint k = (index / this->N) % maxRows;
+                    uint k = (index / this->N) % premax;
                     uint l = index % this->N;
 
                     temp[k][l] = val;
