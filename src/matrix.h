@@ -22,6 +22,7 @@ public:
     uint blockCount = 0;
     uint maxElementsPerBlock = 0;
     bool isSparse = false;
+    bool isTranspose = false;
 
     Matrix();
     Matrix(string matrixName);
