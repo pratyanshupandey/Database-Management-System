@@ -95,7 +95,12 @@ bool Matrix::checkSparse()
 bool Matrix::load()
 {
     logger.log("Matrix::load");
-    if(isSparse)
+    if(this->N == 0)
+    {
+        cout << "Matrix is empty" << endl;
+        return false;
+    } 
+    if(this->isSparse)
         return this->loadSparse();
     return this->loadDense();
 }
@@ -221,121 +226,121 @@ void Matrix::printSparse()
     logger.log("Matrix::printSparse");
     uint count = min(PRINT_COUNT, this->N);
 
-    if(this->isTranspose)
+    // if(this->isTranspose)
+    // {
+    vector<vector<ele_t>> temp(count, vector<ele_t>(count, 0));
+    uint pageIndex = 0;
+    while (pageIndex < this->blockCount)
     {
-        vector<vector<ele_t>> temp(count, vector<ele_t>(count, 0));
-        uint pageIndex = 0;
-        while (pageIndex < this->blockCount)
-        {
-            MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-            uint offset = 0;
-            while ((offset + 2 < this->maxElementsPerBlock))
-            {
-                uint val = page->getElement(offset);
-                uint index = page->getElement(offset + 1);
-                
-                if(index >= 20 * this->N)
-                    break;
-                
-                uint k = index / this->N;
-                uint l = index % this->N;
-
-                if(k < count && l < count)
-                    temp[k][l] = val;
-                
-                offset+=2;
-            }
-            pageIndex++;
-        }
-        for(uint i = 0; i < count; i++)
-        {
-            for(uint j = 0; j < count; j++)
-                cout << temp[i][j] << " ";
-            cout << endl;
-        }
-    }
-    else
-    {
-        uint i = 0;
-        uint j = 0;
-        uint offset = 0;
-        uint pageIndex = 0;
-
         MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-
-        while(i < count)
+        
+        vector <ele_t> elements = page->getVector();
+        for (uint i = 0; i < elements.size(); i+=2)
         {
-            uint element = page->getElement(offset);
-            uint index = page->getElement(offset + 1);
+            ele_t val = elements[i];
+            uint index = elements[i+1];
+
+            if(index >= 20 * this->N)
+                break;
+            
             uint k = index / this->N;
             uint l = index % this->N;
 
-            while(i < k && i < count)
-            {
-                while(j < count)
-                {
-                    cout << "0" << " ";
-                    j++;
-                }
-                    
-                cout << endl;
-                j = 0;
-                i++;
-            }
-
-            if(i < count)
-            {
-                while (j < min(l, count))
-                {
-                    cout << "0" << " ";
-                    j++;
-                }
-
-                if(j == count)
-                {
-                    cout << endl;
-                    j = 0;
-                    i++;
-                }    
-            }
-
-            if(i < count && l < count)
-            {    
-                cout << element << " ";
-                j++;
-                if(j == count)
-                {
-                    cout << endl;
-                    i++;
-                    j = 0;
-                }
-            }
-
-            if(offset + 4 > this->maxElementsPerBlock)
-            {
-                pageIndex++;
-                if(pageIndex < this->blockCount)
-                    page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-                else
-                {
-                    while(i < count)
-                    {
-                        while (j < count)
-                        {
-                            cout << "0" << " ";
-                            j++;
-                        }
-                        cout << endl;
-                        j = 0;
-                        i++;
-                    }   
-                }
-                offset = 0;
-            }
-            else
-                offset+=2;
+            if(k < count && l < count)
+                temp[k][l] = val;
+            
         }
+        pageIndex++;
     }
+    for(uint i = 0; i < count; i++)
+    {
+        for(uint j = 0; j < count; j++)
+            cout << temp[i][j] << " ";
+        cout << endl;
+    }
+    // }
+    // else
+    // {
+    //     uint i = 0;
+    //     uint j = 0;
+    //     uint offset = 0;
+    //     uint pageIndex = 0;
+
+    //     MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+
+    //     while(i < count)
+    //     {
+    //         uint element = page->getElement(offset);
+    //         uint index = page->getElement(offset + 1);
+    //         uint k = index / this->N;
+    //         uint l = index % this->N;
+
+    //         while(i < k && i < count)
+    //         {
+    //             while(j < count)
+    //             {
+    //                 cout << "0" << " ";
+    //                 j++;
+    //             }
+                    
+    //             cout << endl;
+    //             j = 0;
+    //             i++;
+    //         }
+
+    //         if(i < count)
+    //         {
+    //             while (j < min(l, count))
+    //             {
+    //                 cout << "0" << " ";
+    //                 j++;
+    //             }
+
+    //             if(j == count)
+    //             {
+    //                 cout << endl;
+    //                 j = 0;
+    //                 i++;
+    //             }    
+    //         }
+
+    //         if(i < count && l < count)
+    //         {    
+    //             cout << element << " ";
+    //             j++;
+    //             if(j == count)
+    //             {
+    //                 cout << endl;
+    //                 i++;
+    //                 j = 0;
+    //             }
+    //         }
+
+    //         if(offset + 4 > this->maxElementsPerBlock)
+    //         {
+    //             pageIndex++;
+    //             if(pageIndex < this->blockCount)
+    //                 page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+    //             else
+    //             {
+    //                 while(i < count)
+    //                 {
+    //                     while (j < count)
+    //                     {
+    //                         cout << "0" << " ";
+    //                         j++;
+    //                     }
+    //                     cout << endl;
+    //                     j = 0;
+    //                     i++;
+    //                 }   
+    //             }
+    //             offset = 0;
+    //         }
+    //         else
+    //             offset+=2;
+    //     }
+    // }
 }
 
 /**
@@ -401,10 +406,11 @@ bool Matrix::transposeSparse()
     {
         MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
         vector<pair<ele_t, ele_t>> temp;
-        for (uint i = 0; i < this->maxElementsPerBlock; i+=2)
+        vector <ele_t> elements = page->getVector();
+        for (uint i = 0; i < elements.size(); i+=2)
         {
-            uint val = page->getElement(i);
-            uint index = page->getElement(i + 1);
+            uint val = elements[i];
+            uint index = elements[i + 1];
             uint newIndex = (index % this->N) * N + (index / this->N);
             temp.emplace_back(newIndex, val);
         }
@@ -559,7 +565,7 @@ void Matrix::makePermanent()
 void Matrix::makePermanentSparse()
 {
     
-    if(!this->isPermanent())
+    if(this->isPermanent())
         bufferManager.deleteFile(this->sourceFileName);
     logger.log("Matrix::makePermanentSparse");
     string newSourceFile = "../data/" + this->matrixName + ".csv";
@@ -568,12 +574,12 @@ void Matrix::makePermanentSparse()
     if(this->isTranspose)
     {
         uint maxRows = max_size / this->N;
-        uint iterations = this->N / maxRows;
+        uint iterations = ceil(this->N / maxRows);
         uint row = 0;
         vector<uint> offset(this->blockCount, 0);
-        for(uint i = 0; i <= iterations; i++)
+        for(uint i = 0; i < iterations; i++)
         {
-            if(i == iterations)
+            if(i == iterations - 1)
                 maxRows = this->N % maxRows;
             row += maxRows;
             vector<vector<ele_t>> temp(maxRows, vector<ele_t>(this->N, 0));
@@ -581,16 +587,16 @@ void Matrix::makePermanentSparse()
             while (pageIndex < this->blockCount)
             {
                 MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-
-                while ((offset[pageIndex] + 2 < this->maxElementsPerBlock))
+                vector <ele_t> elements = page->getVector();
+                while ((offset[pageIndex] + 2 <= elements.size()))
                 {
-                    uint val = page->getElement(offset[pageIndex]);
-                    uint index = page->getElement(offset[pageIndex] + 1);
+                    uint val = elements[offset[pageIndex]];
+                    uint index = elements[offset[pageIndex] + 1];
                     
                     if(index >= (row * this->N))
                         break;
                     
-                    uint k = index / this->N;
+                    uint k = (index / this->N) % maxRows;
                     uint l = index % this->N;
 
                     temp[k][l] = val;
@@ -607,103 +613,106 @@ void Matrix::makePermanentSparse()
                     if(j == this->N - 1)
                         fout << endl;
                     else
-                        fout << ", ";
+                        fout << ",";
                 }
             }
         }
     }
-
-    uint i = 0;
-    uint j = 0;
-    uint offset = 0;
-    uint pageIndex = 0;
-
-    MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-
-    while(i < this->N)
+    else
     {
-        uint element = page->getElement(offset);
-        uint index = page->getElement(offset + 1);
-        uint k = index / this->N;
-        uint l = index % this->N;
+        uint i = 0;
+        uint j = 0;
+        uint offset = 0;
+        uint pageIndex = 0;
 
-        while(i < k && i < this->N)
+        MatrixPage* page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+
+        while(i < this->N)
         {
-            while(j < this->N)
+            uint element = page->getElement(offset);
+            uint index = page->getElement(offset + 1);
+            uint k = index / this->N;
+            uint l = index % this->N;
+
+            while(i < k && i < this->N)
             {
-                fout << "0";
-                j++;
-                
-                if(j == this->N)
-                    fout << endl;
-                else
-                    fout << ", ";
+                while(j < this->N)
+                {
+                    fout << "0";
+                    j++;
+                    
+                    if(j == this->N)
+                        fout << endl;
+                    else
+                        fout << ",";
+                }
+                    
+                j = 0;
+                i++;
             }
-                
-            j = 0;
-            i++;
-        }
 
-        if(i < this->N)
-        {
-            while (j < l)
+            if(i < this->N)
             {
-                fout << "0";
-                j++;
+                while (j < l)
+                {
+                    fout << "0";
+                    j++;
 
+                    if(j == this->N)
+                    {
+                        fout << endl;
+                        j = 0;
+                        i++;
+                    }
+                    else
+                        fout << ",";
+                }    
+            }
+
+            if(i < this->N)
+            {    
+                fout << element;
+                j++;
                 if(j == this->N)
                 {
                     fout << endl;
-                    j = 0;
                     i++;
+                    j = 0;
                 }
                 else
-                    fout << ", ";
-            }    
-        }
-
-        if(i < this->N)
-        {    
-            fout << element;
-            j++;
-            if(j == this->N)
-            {
-                fout << endl;
-                i++;
-                j = 0;
+                    fout << ",";
             }
-            else
-                fout << ", ";
-        }
 
-        if(offset + 4 > this->maxElementsPerBlock)
-        {
-            pageIndex++;
-            if(pageIndex < this->blockCount)
-                page = matrixBufferManager.getPage(this->matrixName, pageIndex);
-            else
+            if(offset + 4 > this->maxElementsPerBlock)
             {
-                while(i < this->N)
+                pageIndex++;
+                if(pageIndex < this->blockCount)
+                    page = matrixBufferManager.getPage(this->matrixName, pageIndex);
+                else
                 {
-                    while (j < this->N)
+                    while(i < this->N)
                     {
-                        fout << "0";
-                        j++;
+                        while (j < this->N)
+                        {
+                            fout << "0";
+                            j++;
 
-                        if(j == this->N)
-                            fout << endl;
-                        else
-                            fout << ", ";
-                    }
-                    j = 0;
-                    i++;
-                }   
+                            if(j == this->N)
+                                fout << endl;
+                            else
+                                fout << ",";
+                        }
+                        j = 0;
+                        i++;
+                    }   
+                }
+                offset = 0;
             }
-            offset = 0;
+            else
+                offset+=2;
         }
-        else
-            offset+=2;
     }
+    fout.close();
 }
 
 /**
