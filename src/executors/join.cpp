@@ -206,6 +206,12 @@ void executeNestedJOIN()
     }
 
     tableCatalogue.insertTable(resultTable);
+    if (resultTable->rowCount <= 0)
+    {
+        cout << "\nResultant Relation of Join is empty. Not Loaded in Catalogue." << endl;
+        tableCatalogue.deleteTable(resultTable->tableName);
+    }
+
 
     cout << "\nNo of Block Accesses = " << BLOCK_ACCESSES << endl;
     BLOCK_ACCESSES = 0;
@@ -347,6 +353,11 @@ void executeParthashJOIN()
     }
 
     tableCatalogue.insertTable(resultTable);
+    if (resultTable->rowCount <= 0)
+    {
+        cout << "\nResultant Relation of Join is empty. Not Loaded in Catalogue." << endl;
+        tableCatalogue.deleteTable(resultTable->tableName);
+    }
 
     cout << "\nNo of Block Accesses = " << BLOCK_ACCESSES << endl;
     BLOCK_ACCESSES = 0;
