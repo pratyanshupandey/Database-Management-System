@@ -207,7 +207,8 @@ void executeNestedJOIN()
 
     tableCatalogue.insertTable(resultTable);
 
-    cout << "\nNo of Block Accesses = " << endl;
+    cout << "\nNo of Block Accesses = " << BLOCK_ACCESSES << endl;
+    BLOCK_ACCESSES = 0;
     return;
 }
 
@@ -347,7 +348,8 @@ void executeParthashJOIN()
 
     tableCatalogue.insertTable(resultTable);
 
-    cout << "\nNo of Block Accesses = " << endl;
+    cout << "\nNo of Block Accesses = " << BLOCK_ACCESSES << endl;
+    BLOCK_ACCESSES = 0;
     return;
 }
 
@@ -355,6 +357,7 @@ void executeParthashJOIN()
 void executeJOIN()
 {
     logger.log("executeJOIN");
+    BLOCK_ACCESSES = 0;
     if (parsedQuery.joinAlgorithm == "NESTED")
         executeNestedJOIN();
     else if (parsedQuery.joinAlgorithm == "PARTHASH")

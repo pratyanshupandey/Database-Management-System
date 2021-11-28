@@ -83,6 +83,9 @@ bool semanticParseGROUPBY()
 void executeGROUPBY()
 {
     logger.log("executeGROUPBY");
+
+    BLOCK_ACCESSES = 0;
+
     Table table = *tableCatalogue.getTable(parsedQuery.groupRelationName);
 
     vector <string> result_columns;
@@ -163,6 +166,7 @@ void executeGROUPBY()
 
     tableCatalogue.insertTable(resultTable);
 
-    cout << "\nNo of Block Accesses = " << endl;
+    cout << "\nNo of Block Accesses = " << BLOCK_ACCESSES << endl;
+    BLOCK_ACCESSES = 0;
     return;
 }

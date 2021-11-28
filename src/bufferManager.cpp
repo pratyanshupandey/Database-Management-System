@@ -69,6 +69,7 @@ Page BufferManager::getFromPool(string pageName)
 Page BufferManager::insertIntoPool(string tableName, int pageIndex)
 {
     logger.log("BufferManager::insertIntoPool");
+    BLOCK_ACCESSES += 1;
     Page page(tableName, pageIndex);
     if (this->pages.size() >= BLOCK_COUNT)
         pages.pop_front();
@@ -88,6 +89,7 @@ Page BufferManager::insertIntoPool(string tableName, int pageIndex)
 void BufferManager::writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount)
 {
     logger.log("BufferManager::writePage");
+    BLOCK_ACCESSES += 1;
     Page page(tableName, pageIndex, rows, rowCount);
     page.writePage();
 }
