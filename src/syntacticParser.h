@@ -18,6 +18,7 @@ enum QueryType
     SELECTION,
     SORT,
     SOURCE,
+    GROUPBY,
     UNDETERMINED
 };
 
@@ -103,6 +104,12 @@ public:
 
     string sourceFileName = "";
 
+    string groupRelationName = "";
+    string groupResultRelationName = "";
+    string groupGroupingAttribute = "";
+    string groupOperatedAttribute = "";
+    string groupOperation = "";
+
     ParsedQuery();
     void clear();
 };
@@ -122,6 +129,7 @@ bool syntacticParseRENAME();
 bool syntacticParseSELECTION();
 bool syntacticParseSORT();
 bool syntacticParseSOURCE();
+bool syntacticParseGROUPBY();
 
 bool isFileExists(string tableName);
 bool isQueryFile(string fileName);
