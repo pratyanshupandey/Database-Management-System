@@ -83,6 +83,86 @@ bool semanticParseGROUPBY()
 void executeGROUPBY()
 {
     logger.log("executeGROUPBY");
-    
+    Table table = *tableCatalogue.getTable(parsedQuery.groupRelationName);
+
+    vector <string> result_columns;
+    result_columns.push_back(parsedQuery.groupGroupingAttribute);
+    result_columns.push_back(parsedQuery.groupOperation + parsedQuery.groupOperatedAttribute);
+    Table *resultTable = new Table(parsedQuery.groupResultRelationName);
+    resultTable->sourceFileName = "";
+    resultTable->columns = result_columns;
+    resultTable->columnCount = result_columns.size();
+    resultTable->maxRowsPerBlock = (uint)((BLOCK_SIZE * 1000) / (sizeof(int) * resultTable->columnCount));
+
+    int groupingColumnIndex = table.getColumnIndex(parsedQuery.groupGroupingAttribute);
+    int operatingColumnIndex = table.getColumnIndex(parsedQuery.groupOperatedAttribute);
+
+    vector <int> row;
+    map <int, pair<int, int>> result;
+    Cursor cursor = table.getCursor();
+
+    while(true)
+    {
+        row = cursor.getNext();
+        if (row.empty())
+            break;
+        if (result.find(row[groupingColumnIndex])  == result.end())
+            result[row[groupingColumnIndex]] = pair <int,int>(row[operatingColumnIndex], 1);
+        else
+        {
+            auto updated = result[row[groupingColumnIndex]];
+
+            if (parsedQuery.groupOperation == "MAX")
+                updated.first = max(updated.first, row[operatingColumnIndex]);
+            else if (parsedQuery.groupOperation == "MIN")
+                updated.first = min(updated.first, row[operatingColumnIndex]);
+            else if (parsedQuery.groupOperation == "SUM")
+                updated.first += row[operatingColumnIndex];
+            else if (parsedQuery.groupOperation == "AVG")
+                updated.first += row[operatingColumnIndex];            
+            updated.second++;
+            result[row[groupingColumnIndex]] = updated;
+        }
+    }
+
+    vector <vector <int>> result_rows;
+
+    for (auto it = result.begin(); it != result.end(); it++)
+    {
+        vector <int> new_row;
+        new_row.push_back(it->first);
+
+        if (parsedQuery.groupOperation == "MAX")
+            new_row.push_back(it->second.first);
+        else if (parsedQuery.groupOperation == "MIN")
+            new_row.push_back(it->second.first);
+        else if (parsedQuery.groupOperation == "SUM")
+            new_row.push_back(it->second.first);
+        else if (parsedQuery.groupOperation == "AVG")
+            new_row.push_back((it->second.first)/(it->second.second));
+
+
+        result_rows.push_back(new_row);
+        resultTable->rowCount++;
+
+        if (result_rows.size() == resultTable->maxRowsPerBlock)
+        {
+            bufferManager.writePage(resultTable->tableName, resultTable->blockCount, result_rows, result_rows.size());
+            resultTable->rowsPerBlockCount.push_back(result_rows.size());
+            resultTable->blockCount++;
+            result_rows.clear();
+        }
+    }
+    if (!result_rows.empty())
+    {
+        bufferManager.writePage(resultTable->tableName, resultTable->blockCount, result_rows, result_rows.size());
+        resultTable->rowsPerBlockCount.push_back(result_rows.size());
+        resultTable->blockCount++;
+        result_rows.clear();
+    }
+
+    tableCatalogue.insertTable(resultTable);
+
+    cout << "\nNo of Block Accesses = " << endl;
     return;
 }
