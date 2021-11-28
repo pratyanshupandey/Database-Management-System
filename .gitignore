@@ -46,3 +46,10 @@ src/.vscode/
 
 # out file
 src/out
+
+# server file
+src/server
+
+# temp folder
+data/temp/
+
