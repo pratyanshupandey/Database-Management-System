@@ -82,8 +82,11 @@ bool semanticParseJOIN()
     return true;
 }
 
-void NestedJOIN(Table table1, int firstIndex, Table table2, int secondIndex, Table* resultTable, vector <vector <int>> &result_rows)
+void NestedJOIN(Table table1, int firstIndex, Table table2, int secondIndex, Table* resultTable, vector <vector <int>> &result_rows, bool reverse)
 {
+    if (table1.blockCount == 0 || table2.blockCount == 0)
+        return;
+
     int table1_blocks_per_iteration = parsedQuery.joinBuffer - 2;
     int no_of_iterations = ceil((float)table1.blockCount / (float)table1_blocks_per_iteration);
     Cursor cursor1 = table1.getCursor();
@@ -117,7 +120,10 @@ void NestedJOIN(Table table1, int firstIndex, Table table2, int secondIndex, Tab
                     if (evaluateBinOp(table1_rows[i][firstIndex], row[secondIndex], parsedQuery.joinBinaryOperator))
                     {
                         vector <int> new_row(table1_rows[i]);
-                        new_row.insert(new_row.end(), row.begin(), row.end());
+                        if (reverse)
+                            new_row.insert(new_row.begin(), row.begin(), row.end());
+                        else
+                            new_row.insert(new_row.end(), row.begin(), row.end());
                         result_rows.push_back(new_row);
                         resultTable->rowCount++;
                     }
@@ -145,7 +151,10 @@ void NestedJOIN(Table table1, int firstIndex, Table table2, int secondIndex, Tab
                     if (evaluateBinOp(table1_rows[i][firstIndex], row[secondIndex], parsedQuery.joinBinaryOperator))
                     {
                         vector <int> new_row(table1_rows[i]);
-                        new_row.insert(new_row.end(), row.begin(), row.end());
+                        if (reverse)
+                            new_row.insert(new_row.begin(), row.begin(), row.end());
+                        else
+                            new_row.insert(new_row.end(), row.begin(), row.end());
                         result_rows.push_back(new_row);
                         resultTable->rowCount++;
                     }
@@ -183,7 +192,10 @@ void executeNestedJOIN()
     int secondColumnIndex = table2.getColumnIndex(parsedQuery.joinSecondColumnName);
 
     vector <vector <int>> result_rows;
-    NestedJOIN(table1, firstColumnIndex, table2, secondColumnIndex, resultTable, result_rows);
+    if(table1.blockCount <= table2.blockCount)
+        NestedJOIN(table1, firstColumnIndex, table2, secondColumnIndex, resultTable, result_rows, false);
+    else
+        NestedJOIN(table2, secondColumnIndex, table1, firstColumnIndex, resultTable, result_rows, true);
 
     if (!result_rows.empty())
     {
@@ -232,6 +244,9 @@ void executeParthashJOIN()
     for (uint i = 0; i < partitions_count; i++)
     {
         Table* new_bucket = new Table(table1.tableName + "_" + to_string(i));
+        new_bucket->columns = table1.columns;
+        new_bucket->columnCount = table1.columnCount;
+        new_bucket->maxRowsPerBlock = table1.maxRowsPerBlock;
         table1_parts.push_back(new_bucket);
     }
     vector<vector<int>> partition_blocks[partitions_count];
@@ -253,13 +268,16 @@ void executeParthashJOIN()
         }
     }
     for (uint i = 0; i < partitions_count; i++)
-    if (!partition_blocks[i].empty())
-        {
-            bufferManager.writePage(table1_parts[i]->tableName, table1_parts[i]->blockCount, partition_blocks[i], partition_blocks[i].size());
-            table1_parts[i]->rowsPerBlockCount.push_back(partition_blocks[i].size());
-            table1_parts[i]->blockCount++;
-            partition_blocks[i].clear();
-        }
+    {
+        if (!partition_blocks[i].empty())
+            {
+                bufferManager.writePage(table1_parts[i]->tableName, table1_parts[i]->blockCount, partition_blocks[i], partition_blocks[i].size());
+                table1_parts[i]->rowsPerBlockCount.push_back(partition_blocks[i].size());
+                table1_parts[i]->blockCount++;
+                partition_blocks[i].clear();
+            }
+        tableCatalogue.insertTable(table1_parts[i]);
+    }
     
 
     // Table 2
@@ -268,6 +286,9 @@ void executeParthashJOIN()
     for (uint i = 0; i < partitions_count; i++)
     {
         Table* new_bucket = new Table(table2.tableName + "_" + to_string(i));
+        new_bucket->columns = table2.columns;
+        new_bucket->columnCount = table2.columnCount;
+        new_bucket->maxRowsPerBlock = table2.maxRowsPerBlock;
         table2_parts.push_back(new_bucket);
     }
     Cursor cursor2 = table2.getCursor();
@@ -288,14 +309,16 @@ void executeParthashJOIN()
         }
     }
     for (uint i = 0; i < partitions_count; i++)
-    if (!partition_blocks[i].empty())
-        {
-            bufferManager.writePage(table2_parts[i]->tableName, table2_parts[i]->blockCount, partition_blocks[i], partition_blocks[i].size());
-            table2_parts[i]->rowsPerBlockCount.push_back(partition_blocks[i].size());
-            table2_parts[i]->blockCount++;
-            partition_blocks[i].clear();
-        }
-
+    {
+        if (!partition_blocks[i].empty())
+            {
+                bufferManager.writePage(table2_parts[i]->tableName, table2_parts[i]->blockCount, partition_blocks[i], partition_blocks[i].size());
+                table2_parts[i]->rowsPerBlockCount.push_back(partition_blocks[i].size());
+                table2_parts[i]->blockCount++;
+                partition_blocks[i].clear();
+            }
+        tableCatalogue.insertTable(table2_parts[i]);
+    }
     
     /* 
     #########################
@@ -303,6 +326,25 @@ void executeParthashJOIN()
     #########################
      */
     
+    vector <vector<int>> result_rows;
+    for (uint part_num = 0; part_num < partitions_count; part_num++)
+    {
+        if(table1_parts[part_num]->blockCount <= table2_parts[part_num]->blockCount)
+            NestedJOIN(*table1_parts[part_num], firstColumnIndex, *table2_parts[part_num], secondColumnIndex, resultTable, result_rows, false);
+        else
+            NestedJOIN(*table2_parts[part_num], secondColumnIndex, *table1_parts[part_num], firstColumnIndex, resultTable, result_rows, true);
+        
+        tableCatalogue.deleteTable(table1_parts[part_num]->tableName);
+        tableCatalogue.deleteTable(table2_parts[part_num]->tableName);
+    }
+    if (!result_rows.empty())
+    {
+        bufferManager.writePage(resultTable->tableName, resultTable->blockCount, result_rows, result_rows.size());
+        resultTable->rowsPerBlockCount.push_back(result_rows.size());
+        resultTable->blockCount++;
+        result_rows.clear();
+    }
+
     tableCatalogue.insertTable(resultTable);
 
     cout << "\nNo of Block Accesses = " << endl;
