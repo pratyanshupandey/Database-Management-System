@@ -286,7 +286,6 @@ void executeSORT(){
             
         }
         merge_iter++;
-        cout << merge_iter << endl;
         if (no_of_runs <= max_runs_per_merge_iter)
             break;
     }
