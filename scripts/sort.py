@@ -2,8 +2,8 @@ import random
 from functools import cmp_to_key
 
 file = open("../data/REL.csv", "w+")
-col_count = 5
-cols = ["A", "B", "C", "D", "E"]
+col_count = 7
+cols = ["A", "B", "C", "D", "E", "F", "G"]
 
 file.write(", ".join(cols) + "\n")
 
