@@ -84,9 +84,196 @@ bool semanticParseSORT(){
     return true;
 }
 
+bool sort_key(const vector <int> &a, const vector <int> &b)
+{
+    if(parsedQuery.sortingStrategy == ASC)
+        return a[parsedQuery.sortColumnIndex] < b[parsedQuery.sortColumnIndex];
+    else
+        return a[parsedQuery.sortColumnIndex] > b[parsedQuery.sortColumnIndex];
+}
+
+class Comparator
+{
+    public:
+    bool operator()(const pair <vector <int>, int> &a, const pair <vector <int>, int> &b)
+    {
+        if(parsedQuery.sortingStrategy == ASC)
+            return a.first[parsedQuery.sortColumnIndex] > b.first[parsedQuery.sortColumnIndex];
+        else
+            return a.first[parsedQuery.sortColumnIndex] < b.first[parsedQuery.sortColumnIndex];
+    }
+};
+
 void executeSORT(){
     logger.log("executeSORT");
-    cout << parsedQuery.sortBuffer << endl;
-    cout << parsedQuery.sortRelationName << endl;
+
+    Table table = *tableCatalogue.getTable(parsedQuery.sortRelationName);
+
+    Table *resultTable = new Table(parsedQuery.sortResultRelationName);
+    resultTable->sourceFileName = "";
+
+    parsedQuery.sortColumnIndex = table.getColumnIndex(parsedQuery.sortColumnName);
+
+
+    /* ########################
+    Sorting Phase
+    ###########################*/
+
+    int no_of_runs = ceil((float)table.blockCount / (float)parsedQuery.sortBuffer);
+    int run_size = parsedQuery.sortBuffer;
+    
+    vector < vector <int>> table_rows;
+    vector < vector <int>> rows;
+    Cursor cursor = table.getCursor();
+    queue <Table *> table_runs;
+
+    for (uint run = 0; run < no_of_runs; run++)
+    {
+        for (uint page_num = run * run_size; page_num < (run + 1) * run_size && page_num < table.blockCount; page_num++)
+                for (uint row_num = 0; row_num < table.rowsPerBlockCount[page_num]; row_num++)
+                    table_rows.push_back(cursor.getNext());
+        
+        // Sort
+        sort(table_rows.begin(), table_rows.end(), sort_key);
+
+        // Write back in a new bucket
+        Table* new_bucket = new Table(table.tableName + "__" + to_string(run));
+        new_bucket->columns = table.columns;
+        new_bucket->columnCount = table.columnCount;
+        new_bucket->maxRowsPerBlock = table.maxRowsPerBlock;
+        new_bucket->rowCount = table_rows.size();
+
+        int block_count = ceil((float)table_rows.size() / (float) table.maxRowsPerBlock);
+        for (uint block = 0; block < block_count; block++)
+        {
+            // 1 extra block used here
+            rows.assign(table_rows.begin() + table.maxRowsPerBlock * block, block == block_count - 1 ? table_rows.end() : table_rows.begin() + table.maxRowsPerBlock * (block + 1));
+            bufferManager.writePage(new_bucket->tableName, new_bucket->blockCount, rows, rows.size());
+            new_bucket->rowsPerBlockCount.push_back(rows.size());
+            new_bucket->blockCount++;
+            rows.clear();
+        }
+         
+        table_runs.push(new_bucket);
+        tableCatalogue.insertTable(new_bucket);
+        table_rows.clear();
+    }
+
+
+    /* ########################
+    Merging Phase
+    ###########################*/
+
+    uint max_runs_per_merge_iter = parsedQuery.sortBuffer - 1;
+    uint merge_iter = 0;
+    vector <int> row;
+    vector <vector <int>> result_rows;
+
+    while(true)
+    {
+        uint no_of_runs = table_runs.size();
+        
+        for (uint merge_start = 0; merge_start < no_of_runs; merge_start += max_runs_per_merge_iter)
+        {
+            uint merge_len = min(max_runs_per_merge_iter, no_of_runs - merge_start);
+            vector <Cursor> cursors;
+            vector <Table *> tables;
+            vector <vector<int>> block_rows[merge_len];
+            vector <int> pointers; 
+            vector <int> block_num; 
+
+
+            Table* new_bucket;
+            if (no_of_runs > max_runs_per_merge_iter)
+                new_bucket = new Table(table.tableName + "__" + to_string(merge_iter) + "__" + to_string(merge_start));
+            else
+                new_bucket = resultTable;
+            new_bucket->columns = table.columns;
+            new_bucket->columnCount = table.columnCount;
+            new_bucket->maxRowsPerBlock = table.maxRowsPerBlock;
+            
+
+            priority_queue <pair < vector <int>, int>, vector<pair < vector <int>, int>>, Comparator> pq;
+
+            for (uint i = 0; i < merge_len; i++)
+            {
+                Table * temp = table_runs.front();
+                table_runs.pop();
+                Cursor temp_cursor = temp->getCursor();
+                tables.push_back(temp);
+
+                for (uint row_num = 0; row_num < temp->rowsPerBlockCount[0]; row_num++)
+                    block_rows[i].push_back(temp_cursor.getNext());
+
+                pq.push({block_rows[i][0], i});
+                pointers.push_back(1);
+                block_num.push_back(0);
+                cursors.push_back(temp_cursor);
+            }
+
+            while(!pq.empty())
+            {
+                auto ele = pq.top();
+                pq.pop();
+                result_rows.push_back(ele.first);
+                if (result_rows.size() == new_bucket->maxRowsPerBlock)
+                {
+                    bufferManager.writePage(new_bucket->tableName, new_bucket->blockCount, result_rows, result_rows.size());
+                    new_bucket->rowsPerBlockCount.push_back(result_rows.size());
+                    new_bucket->blockCount++;
+                    new_bucket->rowCount += result_rows.size();
+                    result_rows.clear();
+                }
+                uint idx = ele.second;
+                if(block_num[idx] >= tables[idx]->blockCount)
+                    continue;
+                else if(pointers[idx] < block_rows[idx].size())
+                {
+                    pq.push({block_rows[idx][pointers[idx]], idx});
+                    pointers[idx] += 1;
+                }
+                else
+                {
+                    block_rows[idx].clear();
+                    block_num[idx] += 1;
+                    if(block_num[idx] >= tables[idx]->blockCount)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        for (uint row_num = 0; row_num < tables[idx]->rowsPerBlockCount[block_num[idx]]; row_num++)
+                            block_rows[idx].push_back(cursors[idx].getNext());
+                        pq.push({block_rows[idx][0], idx});
+                        pointers[idx] = 1;
+                    }
+                }
+            }
+            if (!result_rows.empty())
+            {
+                bufferManager.writePage(new_bucket->tableName, new_bucket->blockCount, result_rows, result_rows.size());
+                new_bucket->rowsPerBlockCount.push_back(result_rows.size());
+                new_bucket->blockCount++;
+                new_bucket->rowCount += result_rows.size();
+                result_rows.clear();
+            }
+
+            for (uint i = 0; i < merge_len; i++)
+            {
+                tableCatalogue.deleteTable(tables[i]->tableName);
+                // delete tables[i];
+            }
+
+            table_runs.push(new_bucket);
+            tableCatalogue.insertTable(new_bucket);
+            
+        }
+        merge_iter++;
+        cout << merge_iter << endl;
+        if (no_of_runs <= max_runs_per_merge_iter)
+            break;
+    }
+
+
     return;
 }

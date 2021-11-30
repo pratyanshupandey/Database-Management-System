@@ -97,6 +97,7 @@ public:
     SortingStrategy sortingStrategy = NO_SORT_CLAUSE;
     string sortResultRelationName = "";
     string sortColumnName = "";
+    int sortColumnIndex = 0;
     string sortRelationName = "";
     int sortBuffer = 10;
 
