@@ -104,6 +104,24 @@ class Comparator
     }
 };
 
+void write_back_to_page(string tableName, int pageIndex, vector<vector<int>> rows, int begin, int end, int columnCount)
+{
+    logger.log("Page::write BAck to Page");
+    string pageName = "../data/temp/"+ tableName + "_Page" + to_string(pageIndex);
+    ofstream fout(pageName, ios::trunc);
+    for (int rowCounter = begin; rowCounter < end; rowCounter++)
+    {
+        for (int columnCounter = 0; columnCounter < columnCount; columnCounter++)
+        {
+            if (columnCounter != 0)
+                fout << " ";
+            fout << rows[rowCounter][columnCounter];
+        }
+        fout << endl;
+    }
+    fout.close();
+}
+
 void executeSORT(){
     logger.log("executeSORT");
 
@@ -121,9 +139,9 @@ void executeSORT(){
 
     int no_of_runs = ceil((float)table.blockCount / (float)parsedQuery.sortBuffer);
     int run_size = parsedQuery.sortBuffer;
+    int begin, end;
     
     vector < vector <int>> table_rows;
-    vector < vector <int>> rows;
     Cursor cursor = table.getCursor();
     queue <Table *> table_runs;
 
@@ -146,12 +164,11 @@ void executeSORT(){
         int block_count = ceil((float)table_rows.size() / (float) table.maxRowsPerBlock);
         for (uint block = 0; block < block_count; block++)
         {
-            // 1 extra block used here
-            rows.assign(table_rows.begin() + table.maxRowsPerBlock * block, block == block_count - 1 ? table_rows.end() : table_rows.begin() + table.maxRowsPerBlock * (block + 1));
-            bufferManager.writePage(new_bucket->tableName, new_bucket->blockCount, rows, rows.size());
-            new_bucket->rowsPerBlockCount.push_back(rows.size());
+            begin = block * table.maxRowsPerBlock;
+            end = block == block_count - 1 ? table_rows.size() : (block + 1) * table.maxRowsPerBlock;
+            write_back_to_page(new_bucket->tableName, new_bucket->blockCount, table_rows, begin, end, new_bucket->columnCount);
+            new_bucket->rowsPerBlockCount.push_back(end - begin);
             new_bucket->blockCount++;
-            rows.clear();
         }
          
         table_runs.push(new_bucket);
